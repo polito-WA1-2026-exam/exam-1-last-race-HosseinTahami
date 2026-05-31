@@ -1,13 +1,23 @@
 import sqlite3 from 'sqlite3';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const db = new sqlite3.Database('./db/database.db', (err) => {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const dbPath = path.join(__dirname, '..', 'database.db');
+
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err.message);
+  } else {
+    console.log('Connected to SQLite database');
+    console.log('Database path:', dbPath);
   }
 });
 
-// Helper function to promisify database queries
-function query(sql, params = []) {
+// Helper function to run queries with promises
+function runQuery(sql, params = []) {
   return new Promise((resolve, reject) => {
     db.all(sql, params, (err, rows) => {
       if (err) reject(err);
@@ -16,61 +26,61 @@ function query(sql, params = []) {
   });
 }
 
-// Main test function
+// Test database
 async function testDatabase() {
-  try {
-    console.log('Connected to database\n');
+  console.log('\n--- Testing Database ---\n');
 
-    console.log('=== LINES ===');
-    const lines = await query('SELECT * FROM lines');
-    console.table(lines);
+  // Test users
+  console.log('Users:');
+  const users = await runQuery('SELECT id, username, created_at FROM users');
+  console.table(users);
 
-    console.log('\n=== STATIONS ===');
-    const stations = await query('SELECT * FROM stations');
-    console.table(stations);
+  // Test lines
+  console.log('\nLines:');
+  const lines = await runQuery('SELECT * FROM lines');
+  console.table(lines);
 
-    console.log('\n=== INTERCHANGE STATIONS (appear in multiple lines) ===');
-    const interchanges = await query(`
-      SELECT s.name, COUNT(DISTINCT c.line_id) as line_count
-      FROM stations s
-      JOIN connections c ON s.id = c.station_from_id
-      GROUP BY s.id
-      HAVING line_count > 1
-      ORDER BY line_count DESC
-    `);
-    console.table(interchanges);
+  // Test stations
+  console.log('\nStations:');
+  const stations = await runQuery('SELECT * FROM stations');
+  console.table(stations);
 
-    console.log('\n=== EVENTS ===');
-    const events = await query('SELECT * FROM events');
-    console.table(events);
+  // Test connections count
+  console.log('\nConnections count:');
+  const connectionCount = await runQuery('SELECT COUNT(*) as count FROM connections');
+  console.log(`Total connections: ${connectionCount[0].count}`);
 
-    console.log('\n=== USERS ===');
-    const users = await query('SELECT id, username, created_at FROM users');
-    console.table(users);
+  // Test events
+  console.log('\nEvents:');
+  const events = await runQuery('SELECT * FROM events');
+  console.table(events);
 
-    console.log('\n=== GAMES (RANKING) ===');
-    const games = await query(`
-      SELECT u.username, s1.name as start, s2.name as destination, g.final_score
-      FROM games g
-      JOIN users u ON g.user_id = u.id
-      JOIN stations s1 ON g.start_station_id = s1.id
-      JOIN stations s2 ON g.destination_station_id = s2.id
-      ORDER BY g.final_score DESC
-    `);
-    console.table(games);
-
-    console.log('\n✅ Database test complete!');
-    
-  } catch (error) {
-    console.error('Error testing database:', error);
-  } finally {
-    db.close((err) => {
-      if (err) {
-        console.error('Error closing database:', err.message);
-      }
-    });
-  }
+  // Test games
+  console.log('\nGames:');
+  const games = await runQuery(`
+    SELECT 
+      g.id,
+      u.username,
+      s1.name as start_station,
+      s2.name as destination_station,
+      g.final_score,
+      g.played_at
+    FROM games g
+    JOIN users u ON g.user_id = u.id
+    JOIN stations s1 ON g.start_station_id = s1.id
+    JOIN stations s2 ON g.destination_station_id = s2.id
+  `);
+  console.table(games);
 }
 
-// Run the test
-testDatabase();
+// Main execution
+(async () => {
+  try {
+    await testDatabase();
+    console.log('\n✅ All database tests passed!');
+  } catch (error) {
+    console.error('\n❌ Database test failed:', error);
+  } finally {
+    db.close();
+  }
+})();
