@@ -2,11 +2,20 @@ import passport from "passport";
 import LocalStrategy from "passport-local";
 import bcrypt from "bcrypt";
 import sqlite3 from "sqlite3";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const dbPath = path.join(__dirname, '..', 'db', 'database.db');
 
 // Open database connection
-const db = new sqlite3.Database("./db/database.db", (err) => {
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error("Error opening database:", err.message);
+  } else {
+    console.log("Auth module connected to database");
   }
 });
 
