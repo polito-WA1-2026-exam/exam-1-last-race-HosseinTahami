@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import sqlite3 from "sqlite3";
 
 // Open database connection
-const db = new sqlite3.Database("./database.db", (err) => {
+const db = new sqlite3.Database("./db/database.db", (err) => {
   if (err) {
     console.error("Error opening database:", err.message);
   }

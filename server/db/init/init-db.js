@@ -1,7 +1,7 @@
 import sqlite3 from 'sqlite3';
 import bcrypt from 'bcrypt';
 
-const db = new sqlite3.Database('./database.db', (err) => {
+const db = new sqlite3.Database('./db/database.db', (err) => {
   if (err) {
     console.error('Error opening database:', err.message);
   } else {
