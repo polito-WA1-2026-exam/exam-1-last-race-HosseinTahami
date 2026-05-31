@@ -3,7 +3,10 @@ import express from "express";
 import session from "express-session";
 import passport from "passport";
 import cors from "cors";
+
+// Inside imports
 import "./config/auth.js";
+import authRoutes from "./routes/auth.js";
 
 // init express
 const app = express();
@@ -33,9 +36,12 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Test route
+// Routes
+app.use("/api/auth", authRoutes);
+
+// Test route (remove later)
 app.get("/api/test", (req, res) => {
-  res.json({ message: 'Server is running!' });
+  res.json({ message: "Server is running!" });
 });
 
 // activate the server
