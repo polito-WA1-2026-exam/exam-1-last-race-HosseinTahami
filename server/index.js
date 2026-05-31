@@ -7,6 +7,9 @@ import cors from "cors";
 // Inside imports
 import "./config/auth.js";
 import authRoutes from "./routes/auth.js";
+import networkRoutes from "./routes/network.js";
+import gameRoutes from "./routes/game.js";
+import userRoutes from "./routes/user.js";
 
 // init express
 const app = express();
@@ -38,6 +41,9 @@ app.use(passport.session());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/network", networkRoutes);
+app.use("/api/games", gameRoutes);
+app.use("/api/users", userRoutes);
 
 // Test route (remove later)
 app.get("/api/test", (req, res) => {
